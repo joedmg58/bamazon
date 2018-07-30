@@ -7,6 +7,8 @@
 
 -- Seeds for the products table
 
+USE bamazon;
+
 INSERT INTO products ( product_name, department_name, price, stock_quantity ) VALUES
 ( 'Samsung - 65" Class - LED - NU7100 Series - 2160p - Smart - 4K UHD TV with HDR', 'TV & Home Theater', 899.99, 20 ),
 ( 'Sony - 65" Class - LED - X850E Series - 2160p - Smart - 4K UHD TV with HDR', 'TV & Home Theater', 1099.99, 5 ),

@@ -1,0 +1,28 @@
+{
+  "name": "bamazon",
+  "version": "1.0.0",
+  "description": "Amazon-like store front application. Made with node using MySQL.",
+  "main": "bamazonCustomer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joedmg58/bamazon.git"
+  },
+  "keywords": [
+    "bamazon",
+    "node",
+    "mysql"
+  ],
+  "author": "Joed Machado",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/joedmg58/bamazon/issues"
+  },
+  "homepage": "https://github.com/joedmg58/bamazon#readme",
+  "dependencies": {
+    "inquirer": "^6.0.0",
+    "mysql": "^2.16.0"
+  }
+}
