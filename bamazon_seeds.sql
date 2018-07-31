@@ -1,7 +1,7 @@
 /*
 *   bamazon database seeds
 *
-*   UM Coding Boot Camp. JOed Machado. 2018
+*   UM Coding Boot Camp. Joed Machado. 2018
 *
 */
 
