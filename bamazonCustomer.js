@@ -1,19 +1,27 @@
+require('dotenv').config();
+var credentials = require('./credentials.js');
 var inquirer = require( 'inquirer' );
 var mysql = require( 'mysql' );
 const Tablefy = require( 'tablefy' );
 
+//taking mysql params from credntials.js and from .env
+var mysql_params = credentials.mysql_params;
+
+//Parameters for MySQL connection
 var serverParams = {
-    host: 'localhost',
-    port: 3306,
-    user: 'root',
-    password: 'joedmg58',
+    host: mysql_params.host,
+    port: mysql_params.port,
+    user: mysql_params.user,
+    password: mysql_params.password,
     database: 'bamazon'
 }
 
+//Creating the connection to MySQL server
 var connection = mysql.createConnection( serverParams );
 
+//Display the table products from bamazon database
 function displayProducts() {
-    var queryStr = 'SELECT item_id AS Id, product_name AS Product, department_name AS Department, price AS Price FROM products';
+    var queryStr = 'SELECT item_id AS Id, product_name AS Product, department_name AS Department, price AS Price, stock_quantity AS Stock FROM products';
     var query = connection.query( queryStr, function( error, response ) {
         if ( error ) throw error;
         console.log( '\x1b[33m\x1b[44m' );  //set console caracters background blue and foreground bright
@@ -25,20 +33,53 @@ function displayProducts() {
     } );
 }
 
+function updateProducts( pid, newQty ){
+
+    var queryStr = 'UPDATE products SET ? WHERE ?';
+    var queryParam = [ { stock_quantity: newQty }, { item_id: pid } ];
+
+    var query = connection.query( queryStr, queryParam, function( error, response ){
+        console.log( response.affectedRows + " products updated!\n" );
+
+        inquirer.prompt([
+            {
+                type: 'confirm',
+                message: 'Press ANY key to continue...',
+                name: 'anykey'
+            }
+        ]).then( function( answer ){
+            displayProducts();
+        } );
+
+    } );
+   
+}
+
 function processOrder( pid, qty ) {
-    var queryStr ='SELECT stock_quantity FROM products WHERE ?';
+    var queryStr ='SELECT stock_quantity, price, product_name FROM products WHERE ?';
     var queryParam = { item_id: pid };
 
     var query = connection.query ( queryStr, queryParam, function( error, response ){
         if ( error ) throw error;
 
         var stock = response[0].stock_quantity;
-        if ( qty > stock ) {
+        var price = response[0].price;
+        var pname = response[0].product_name;
+
+        if ( stock - qty < 0 ) {
             console.log( 'Insufficient quantity! - Order canceled.' );
+            displayProducts();
         }
         else {
-            
+            console.log( '\x1b[30m\x1b[42m' );
+            console.log( 'I N V O I C E');
+            console.log( 'You have purchased \x1b[37m%s\x1b[30m %s', qty, pname );
+            console.log( 'The total cost of your purchase is \x1b[37m$'+ qty*price );
+            console.log( '\x1b[0m' );
+
+            updateProducts( pid, (stock - qty) );
         }
+
     } );
 
 }
