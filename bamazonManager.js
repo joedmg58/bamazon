@@ -159,12 +159,12 @@ function addNewProduct() {
         }
     ]).then( function( answer ){
         //Insert new product into table products --------------------------------------------------------------------------------
-        var queryStr = 'INSERT INTO products ( product_name, department_name, price, stock_quantity ) SET ?';
+        var queryStr = 'INSERT INTO products SET ?';
         var queryParams = {
             product_name: answer.pname,
             department_name: answer.dname,
-            price: answer.price,
-            stock_quantity: answer.qty
+            price: parseFloat( answer.price ),
+            stock_quantity: parseInt( answer.qty )
         } 
 
         var query = connection.query( queryStr, queryParams, function( error, response ){
