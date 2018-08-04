@@ -4,7 +4,7 @@ var inquirer = require( 'inquirer' );
 var mysql = require( 'mysql' );
 const Tablefy = require( 'tablefy' );
 
-//taking mysql params from credntials.js and from .env
+//taking mysql params from credentials.js and from .env
 var mysql_params = credentials.mysql_params;
 
 //Parameters for MySQL connection
@@ -20,6 +20,9 @@ var serverParams = {
 var connection = mysql.createConnection( serverParams );
 
 function mainMenu() {
+    console.log('');
+    console.log('---------- M A I N   M E N U ----------');
+    console.log('');
     inquirer.prompt([
         {
             type: 'list',
@@ -65,10 +68,11 @@ function viewProducts() {
 }
 
 function viewLowInventory() {
-    var queryStr = 'SELECT item_id AS Id, product_name AS Product, department_name AS Department, price AS Price, stock_quantity AS Stock FROM products WHERE ?';
-    var queryParams = { stock_quantity: '<5' };
-    var query = connection.query( queryStr, queryParams, function( error, response ) {
+    var queryStr = 'SELECT item_id AS Id, product_name AS Product, department_name AS Department, price AS Price, stock_quantity AS Stock FROM products WHERE stock_quantity < 5';
+    var query = connection.query( queryStr, function( error, response ) {
         if ( error ) throw error;
+
+        //console.log( query.sql );
 
         if (response.length > 0 ) {
             console.log( '\x1b[33m\x1b[44m' );  //set console caracters background blue and foreground bright
@@ -88,6 +92,9 @@ function viewLowInventory() {
 }
 
 function addInventory() {
+    console.log('');
+    console.log('---------- A D D  T O  I N V E N T O R Y ----------');
+    console.log('');
     inquirer.prompt([
         {
             type: 'input',
@@ -100,13 +107,35 @@ function addInventory() {
             message: 'New stock quantity: '
         }
     ]).then( function( answer ) {
-        //update database
+        //update stock_quantity in table products for item_id
+        var queryStr = 'UPDATE products SET ? WHERE ?';
+        var queryParams = [ {stock_quantity:answer.stock}, {item_id:answer.pid} ];
 
-        mainMenu();
+        var query = connection.query( queryStr, queryParams, function( error, response ){
+            if (error) throw error;
+
+            console.log( response.affectedRows + " products updated!\n" );
+
+            inquirer.prompt([
+                {
+                    type: 'confirm',
+                    name: 'confirm',
+                    message: 'Keep adding to inventory ? ',
+                    default: false
+                }
+            ]).then( function( ans ){
+                if ( ans.confirm ) { addInventory(); } else { mainMenu(); }
+            } );
+
+        } );
+
     } );
 }
 
 function addNewProduct() {
+    console.log('');
+    console.log('---------- A D D  N E W  P R O D U C T ----------');
+    console.log('');
     inquirer.prompt([
         {
             type: 'input',
@@ -122,11 +151,44 @@ function addNewProduct() {
             type: 'input',
             name: 'price',
             message: 'Price: '
+        },
+        {
+            type: 'input',
+            name: 'qty',
+            message: 'Stock quantity: '
         }
     ]).then( function( answer ){
-        //Insert data into database
+        //Insert new product into table products --------------------------------------------------------------------------------
+        var queryStr = 'INSERT INTO products ( product_name, department_name, price, stock_quantity ) SET ?';
+        var queryParams = {
+            product_name: answer.pname,
+            department_name: answer.dname,
+            price: answer.price,
+            stock_quantity: answer.qty
+        } 
 
-        mainMenu();
+        var query = connection.query( queryStr, queryParams, function( error, response ){
+
+            console.log( query.sql );
+
+            if ( error ) { throw error }
+
+            console.log( response.affectedRows + 'product(s) added\n');
+
+            inquirer.prompt([
+                {
+                    type: 'confirm',
+                    name: 'confirm',
+                    message: 'Add another product ? ',
+                    default: false
+                }
+            ]).then( function( ans ){
+                if ( ans.confirm ) { addNewProduct(); } else { mainMenu(); }
+            } );;
+
+        } );
+
+        
     } );
 }
 
